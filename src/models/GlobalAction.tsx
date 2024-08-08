@@ -1,9 +1,11 @@
+import { ColorTheme } from "./ColorTheme"
 import { DataResponse, HeaderColumn } from "./DataTransferObject"
 import { Loadable } from "./Loadable"
 
 export enum GlobalActionType {
   SET_COLUMNS,
-  SET_DATA
+  SET_DATA,
+  SET_THEME,
 }
 
 type BaseAction = {
@@ -22,4 +24,10 @@ type SetDataAction = {
 }
 export const SetDataAction = (value: Loadable<DataResponse>): SetDataAction => ({ type: GlobalActionType.SET_DATA, value })
 
-export type GlobalAction = BaseAction & (SetColumnsAction | SetDataAction)
+type SetThemeAction = {
+  type: GlobalActionType.SET_THEME,
+  value: ColorTheme
+}
+export const SetThemeAction = (value: ColorTheme): SetThemeAction => ({ type: GlobalActionType.SET_THEME, value })
+
+export type GlobalAction = BaseAction & (SetColumnsAction | SetDataAction | SetThemeAction)

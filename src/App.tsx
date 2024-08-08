@@ -20,7 +20,7 @@ const router = createBrowserRouter([
 export const App = () => {
   return <>
     <CssBaseline />
-    <CssVarsProvider>
+    <CssVarsProvider defaultMode='system'>
       <GlobalContextProvider>
         <RouterProvider router={router} />
       </GlobalContextProvider>

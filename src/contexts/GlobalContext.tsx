@@ -2,9 +2,10 @@ import { useCallback, useEffect } from 'react'
 import { createReducerContext } from '../models/createReducerContext'
 import { initialState, reducer } from '../models/GlobalState'
 import { useDataRequest } from '../hooks/useDataRequest'
-import { DataResponse, HeaderColumn } from '../models/DataTransferObject'
-import { SetColumnsAction, SetDataAction } from '../models/GlobalAction'
+import { DataResponse, HeaderColumns } from '../models/DataTransferObject'
+import { SetColumnsAction, SetDataAction, SetThemeAction } from '../models/GlobalAction'
 import { Loaded, Loading, LoadingState } from '../models/Loadable'
+import { ColorTheme } from '../models/ColorTheme'
 
 const { Provider, useProvider } = createReducerContext(reducer, initialState)
 
@@ -14,38 +15,39 @@ export const useGlobalContext = () => {
   const [ state, dispatch ] = useProvider()
 
   const { getHeaders, getData } = useDataRequest()
-  const { headers, data } = state
+  const { headers, data, theme } = state
 
   useEffect(() => {
     requestHeaders()
   }, [])
-
-  useEffect(() => {
-    if (headers.state === LoadingState.LOADED) requestData()
-  }, [headers])
 
   const requestHeaders = useCallback(() => {
     if (state.headers.state === LoadingState.LOADED || state.headers.state === LoadingState.LOADING) return
     dispatch(SetColumnsAction(Loading()))
     getHeaders()
       .then(r => {
-        const columns = r.headers.map(c => HeaderColumn(c))
+        const columns = HeaderColumns(r.headers)
         dispatch(SetColumnsAction(Loaded(columns)))
       })
-  }, [state, getHeaders, HeaderColumn, dispatch, SetColumnsAction])
+  }, [state, getHeaders, HeaderColumns, dispatch, SetColumnsAction])
 
-  const requestData = useCallback(() => {
-    if (state.data.state === LoadingState.LOADED || state.data.state === LoadingState.LOADING) return
+  const requestData = useCallback((xCol: number, yCol: number) => {
+    if (state.data.state === LoadingState.LOADING) return
+    if (state.data.state === LoadingState.LOADED && state.data.value.xCol === xCol && state.data.value.yCol === yCol) return
     dispatch(SetDataAction(Loading()))
-    getData()
+    getData(xCol, yCol)
       .then(r => {
-        
         dispatch(SetDataAction(Loaded(DataResponse(r))))
       })
   }, [state, getData, dispatch, SetDataAction])
 
+  const setTheme = useCallback((theme: ColorTheme) => {
+    dispatch(SetThemeAction(theme))
+  }, [dispatch, SetThemeAction])
+
   return {
     requestHeaders, headers,
-    requestData, data
+    requestData, data,
+    setTheme, theme
   }
 }

@@ -1,16 +1,19 @@
 export type HeaderColumnDTO = [number, string, string, number, string]
 export type HeaderColumn = {
+  id: number,
   include: boolean,
   label: string,
   unit: string,
   description: string
 }
-export const HeaderColumn = (dto: HeaderColumnDTO) => ({
+const HeaderColumn = (id: number, dto: HeaderColumnDTO) => ({
+  id,
   include: dto[0] === 1,
   label: dto[1],
   unit: dto[2],
   description: dto[4]
 })
+export const HeaderColumns = (dto: HeaderColumnDTO[]) => dto.map((v, i) => HeaderColumn(i, v))
 
 type PointDTO = [number, number]
 export type Point = {x: number, y: number, series: string}
@@ -27,6 +30,8 @@ export type DataResponseDTO = {
 }
 export type DataResponse = {
   data: Point[],
+  xCol: number,
+  yCol: number,
   xMin: number,
   xMax: number,
   yMin: number,

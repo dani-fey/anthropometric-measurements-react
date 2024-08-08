@@ -11,8 +11,8 @@ export const useDataRequest = () => {
       .then(r => r.json())
   }
 
-  const getData = (): Promise<DataResponseDTO> => {
-    return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=data&colx=94&coly=100&scalex=10&scaley=10&race=all&age=all`, {
+  const getData = (xCol: number, yCol: number): Promise<DataResponseDTO> => {
+    return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=data&colx=${xCol + 1}&coly=${yCol + 1}&scalex=10&scaley=10&race=all&age=all`, {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
