@@ -1,8 +1,8 @@
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useMemo } from 'react'
 import { createReducerContext } from '../models/createReducerContext'
 import { initialState, reducer } from '../models/GlobalState'
 import { useDataRequest } from '../hooks/useDataRequest'
-import { DataResponse, HeaderColumns } from '../models/DataTransferObject'
+import { DataResponse, HeaderColumn, HeaderColumns } from '../models/DataTransferObject'
 import { SetColumnsAction, SetDataAction, SetThemeAction } from '../models/GlobalAction'
 import { Loaded, Loading, LoadingState } from '../models/Loadable'
 import { ColorTheme } from '../models/ColorTheme'
@@ -45,9 +45,17 @@ export const useGlobalContext = () => {
     dispatch(SetThemeAction(theme))
   }, [dispatch, SetThemeAction])
 
+  const columns: [HeaderColumn?, HeaderColumn?] = useMemo(() => {
+    if (headers.state === LoadingState.LOADED && data.state === LoadingState.LOADED) {
+      return [headers.value.find(v => v.id === data.value.xCol), headers.value.find(v => v.id === data.value.yCol)]
+    }
+    return [undefined, undefined]
+  }, [headers, data])
+
   return {
     requestHeaders, headers,
     requestData, data,
-    setTheme, theme
+    setTheme, theme,
+    columns
   }
 }

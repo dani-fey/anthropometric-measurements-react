@@ -38,7 +38,7 @@ export type DataResponse = {
   yMax: number,
 }
 export const DataResponse = (dto: DataResponseDTO) => {
-  const { data_1, data_2 } = dto
+  const { col_1, col_2, data_1, data_2 } = dto
   let xMin: number | undefined
   let xMax: number | undefined
   let yMin: number | undefined
@@ -54,5 +54,5 @@ export const DataResponse = (dto: DataResponseDTO) => {
       return Point(x, y, series)
     })
   })
-  return {data, xMin, xMax, yMin, yMax} as DataResponse
+  return {data, xMin, xMax, yMin, yMax, xCol: col_1 - 1, yCol: col_2 - 1} as DataResponse
 }

@@ -1,4 +1,4 @@
-import { Card, useTheme } from "@mui/joy"
+import { Card, Typography, useTheme } from "@mui/joy"
 import { useRef, useMemo, useCallback } from "react"
 import { AxisBottom, AxisLeft } from '@visx/axis'
 import { localPoint } from '@visx/event'
@@ -9,6 +9,36 @@ import { voronoi } from '@visx/voronoi'
 import { DataResponse, Point } from "../models/DataTransferObject"
 import { Group } from "@visx/group"
 import { Circle } from "@visx/shape"
+import { useGlobalContext } from "../contexts/GlobalContext"
+
+type TooltipCard_Props = {
+  point: Point
+}
+
+const TooltipCard = ({ point }: TooltipCard_Props) => {
+  const { columns } = useGlobalContext()
+
+  const xLabel = useMemo(() => !!columns[0] ? columns[0].label : '', [columns])
+  const xUnit = useMemo(() => !!columns[0] ? columns[0].unit : '', [columns])
+  const yLabel = useMemo(() => !!columns[1] ? columns[1].label : '', [columns])
+  const yUnit = useMemo(() => !!columns[1] ? columns[1].unit : '', [columns])
+
+  return <>
+    <Card size='sm' sx={{pointerEvents: 'none', transform: `translate(1em, 1em)`}}>
+      <Typography level='body-sm' sx={{fontWeight: 600}}>Series {point.series}</Typography>
+      <Typography level='body-xs'>
+        <Typography sx={{fontWeight: 600}}>{xLabel}: </Typography>
+        <Typography>{point.x}</Typography>
+        <Typography> {xUnit}</Typography>
+      </Typography>
+      <Typography level='body-xs'>
+        <Typography sx={{fontWeight: 600}}>{yLabel}: </Typography>
+        <Typography>{point.y}</Typography>
+        <Typography> {yUnit}</Typography>
+      </Typography>
+    </Card>
+  </>
+}
 
 type ScatterChart_Props = {
   data: DataResponse,
@@ -85,24 +115,19 @@ export const ScatterChart = (props: ScatterChart_Props) => {
             cx={xScale(d.x)}
             cy={yScale(d.y)}
             r={tooltipData === d ? 5 : 2}
-            fill={d.series === '0' ? theme.palette.primary[400] : theme.palette.danger[400]}
+            fill={d.series === '0' ? theme.palette.danger[400] : theme.palette.primary[400]}
           />
         })}
       </Group>
     </svg>
-    {tooltipOpen && <>
+    {tooltipOpen && !!tooltipData && <>
       <TooltipWithBounds
         key={Math.random()}
         left={tooltipLeft}
         top={tooltipTop}
         style={{position: 'absolute', pointerEvents: 'none'}}
       >
-        <Card sx={{pointerEvents: 'none', transform: `translate(1em, 1em)`}}>
-          {tooltipData?.x}
-          <br />
-          {tooltipData?.y}
-
-        </Card>
+        <TooltipCard point={tooltipData} />
       </TooltipWithBounds>
     </>}
   </>
