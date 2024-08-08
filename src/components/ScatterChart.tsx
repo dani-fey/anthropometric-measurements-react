@@ -1,4 +1,4 @@
-import { Card } from "@mui/joy"
+import { Card, useTheme } from "@mui/joy"
 import { useRef, useMemo, useCallback } from "react"
 import { AxisBottom, AxisLeft } from '@visx/axis'
 import { localPoint } from '@visx/event'
@@ -26,6 +26,8 @@ export const ScatterChart = (props: ScatterChart_Props) => {
   const margin = 40
   const expandFactor = 0.1
 
+  const theme = useTheme()
+  
   const { showTooltip, hideTooltip, tooltipOpen, tooltipLeft, tooltipTop, tooltipData } = useTooltip<Point>({})
 
   const svgRef = useRef<SVGSVGElement>(null)
@@ -34,7 +36,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
     return scaleLinear({
       domain: [xMin - (dx * expandFactor / 2), xMax + (dx * expandFactor / 2)],
       range: [margin, width - margin],
-      clamp: true,
+      nice: true,
     })
   }, [xMin, xMax, width])
 
@@ -42,12 +44,11 @@ export const ScatterChart = (props: ScatterChart_Props) => {
     return scaleLinear({
       domain: [yMin - (dy * expandFactor / 2), yMax + (dy * expandFactor / 2)],
       range: [height - margin, margin],
-      clamp: true,
+      nice: true,
     })
   }, [yMin, yMax, height])
 
   const voronoiLayout = useMemo(() => {
-    console.log('voronoi data', data)
     return voronoi<Point>({
       x: d => xScale(d.x),
       y: d => yScale(d.y),
@@ -73,10 +74,10 @@ export const ScatterChart = (props: ScatterChart_Props) => {
   return <>
     <svg width={width} height={height} onPointerMove={handlePointerMove} ref={svgRef} style={{cursor: tooltipOpen ? 'pointer' : 'default'}}>
       <Group pointerEvents={'none'}>
-        <GridRows scale={yScale} left={margin} width={width - 2 * margin} height={height - 2 * margin} />
-        <GridColumns scale={xScale} top={margin} width={width - 2 * margin} height={height - 2 * margin} />
-        <AxisBottom top={height - margin} scale={xScale} />
-        <AxisLeft left={margin} scale={yScale} />
+        <GridRows scale={yScale} left={margin} width={width - 2 * margin} height={height - 2 * margin} stroke={theme.palette.background.level2} />
+        <GridColumns scale={xScale} top={margin} width={width - 2 * margin} height={height - 2 * margin} stroke={theme.palette.background.level2} />
+        <AxisBottom top={height - margin} scale={xScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
+        <AxisLeft left={margin} scale={yScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
         {data.map((d, i) => {
           return <Circle
             key={`point-${i}`}
@@ -84,7 +85,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
             cx={xScale(d.x)}
             cy={yScale(d.y)}
             r={tooltipData === d ? 5 : 2}
-            fill={d.series === '0' ? 'red' : 'blue'}
+            fill={d.series === '0' ? theme.palette.primary[400] : theme.palette.danger[400]}
           />
         })}
       </Group>

@@ -1,4 +1,4 @@
-import { Typography, FormControl, FormLabel, Option, Select } from "@mui/joy"
+import { Typography, FormControl, FormLabel, Option, Select, Stack } from "@mui/joy"
 import { useState, useMemo } from "react"
 import { useGlobalContext } from "../contexts/GlobalContext"
 import { LoadingState } from "../models/Loadable"
@@ -9,7 +9,12 @@ export const ColumnSelector = ({ label, onChange }: {label: string, onChange: (c
   const [ value, setValue ] = useState<number | undefined>(undefined)
 
   const optionValues = useMemo(() => headers.state === LoadingState.LOADED ? headers.value.filter(h => !!h.include) : [], [headers])
-  const optionComponents = useMemo(() => optionValues.map(o => <Option key={o.id} value={o.id}>{o.label} <Typography color='neutral'>({o.unit})</Typography></Option>), [optionValues])
+  const optionComponents = useMemo(() => optionValues.map(o => <Option sx={{maxWidth: 'min(640px, 100vw)'}} key={o.id} value={o.id} label={<>{o.label}&nbsp;<Typography color='neutral'>({o.unit})</Typography></>}>
+    <Stack direction='column'>
+      <Typography>{o.label} <Typography color='neutral'>({o.unit})</Typography></Typography>
+      <Typography level='body-xs' color='neutral'>{o.description}</Typography>
+    </Stack>
+  </Option>), [optionValues])
 
   const handleChange = (next: number) => {
     setValue(next)
