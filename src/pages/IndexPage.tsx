@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Card, Grid, Sheet, Stack, Typography } from '@mui/joy'
+import { Box, Card, Grid, Sheet, Stack, Typography } from '@mui/joy'
 import { useGlobalContext } from '../contexts/GlobalContext'
 import { LoadingState } from '../models/Loadable'
 import { ParentSize } from '@visx/responsive'
@@ -60,7 +60,7 @@ const ChartCard = () => {
 export const IndexPage = () => {
   const { requestData } = useGlobalContext()
 
-  return <Sheet sx={{p: 2}}>
+  return <Box sx={{p: 2, maxWidth: 1200, mx: 'auto'}}>
     <Stack direction='column' spacing={2}>
       <Title />
       <Card>
@@ -68,5 +68,5 @@ export const IndexPage = () => {
       </Card>
       <ChartCard />
     </Stack>
-  </Sheet>
+  </Box>
 }
