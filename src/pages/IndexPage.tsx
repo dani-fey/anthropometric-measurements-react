@@ -6,10 +6,12 @@ import { ParentSize } from '@visx/responsive'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { ScatterChart } from '../components/ScatterChart'
 import { ColumnSelector } from '../components/ColumnSelector'
+import { HeaderColumn } from '../models/DataTransferObject'
+import { Axis } from '../models/Axis'
 
-const ChartControls = ({ onSubmit }: {onSubmit: (xAxis: number, yAxis: number) => void}) => {
-  const [ xAxis, setXAxis ] = useState<number | undefined>(undefined)
-  const [ yAxis, setYAxis ] = useState<number | undefined>(undefined)
+const ChartControls = ({ onSubmit }: {onSubmit: (xAxis: string, yAxis: string) => void}) => {
+  const [ xAxis, setXAxis ] = useState<string | undefined>(undefined)
+  const [ yAxis, setYAxis ] = useState<string | undefined>(undefined)
 
   useEffect(() => {
     if (xAxis === undefined || yAxis === undefined) return
@@ -38,13 +40,18 @@ const Title = () => {
 }
 
 const ChartCard = () => {
-  const { headers, data } = useGlobalContext()
+  const { headers, data, axes } = useGlobalContext()
 
-  if (headers.state === LoadingState.LOADED && data.state === LoadingState.LOADED) return <>
+  const headersLoaded = headers.state === LoadingState.LOADED
+  const dataLoaded = data.state === LoadingState.LOADED
+  const axesDefined = axes.x !== undefined && axes.y !== undefined
+  const dataLoadedForAxes = dataLoaded && axesDefined && (!data.value.data.length || ([axes.x!.id, axes.y!.id].every(column => Object.keys(data.value.data[0]).includes(column))))
+
+  if (headersLoaded && dataLoadedForAxes) return <>
     <Card>
       <div style={{width: '100%', aspectRatio: 2}}>
         <ParentSize debounceTime={0}>
-          {parent => <ScatterChart data={data.value} width={parent.width} height={parent.height} />}
+          {parent => <ScatterChart data={data.value} width={parent.width} height={parent.height} xAxis={axes.x!} yAxis={axes.y!} />}
         </ParentSize>
       </div>
     </Card>  
@@ -58,13 +65,17 @@ const ChartCard = () => {
 }
 
 export const IndexPage = () => {
-  const { requestData } = useGlobalContext()
+  const { requestData, setAxis } = useGlobalContext()
 
   return <Box sx={{p: 2, maxWidth: 1200, mx: 'auto'}}>
     <Stack direction='column' spacing={2}>
       <Title />
       <Card>
-        <ChartControls onSubmit={(x, y) => requestData(x, y)} />
+        <ChartControls onSubmit={(x, y) => {
+          setAxis(Axis.X, x)
+          setAxis(Axis.Y, y)
+          requestData(x, y)
+        }} />
       </Card>
       <ChartCard />
     </Stack>

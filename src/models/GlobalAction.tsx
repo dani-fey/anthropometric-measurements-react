@@ -1,11 +1,11 @@
-import { ColorTheme } from "./ColorTheme"
-import { DataResponse, HeaderColumn } from "./DataTransferObject"
+import { Axis } from "./Axis"
+import { Data, HeaderColumn } from "./DataTransferObject"
 import { Loadable } from "./Loadable"
 
 export enum GlobalActionType {
   SET_COLUMNS,
   SET_DATA,
-  SET_THEME,
+  SET_AXIS
 }
 
 type BaseAction = {
@@ -20,14 +20,15 @@ export const SetColumnsAction = (value: Loadable<HeaderColumn[]>): SetColumnsAct
 
 type SetDataAction = {
   type: GlobalActionType.SET_DATA,
-  value: Loadable<DataResponse>
+  value: Loadable<Data>
 }
-export const SetDataAction = (value: Loadable<DataResponse>): SetDataAction => ({ type: GlobalActionType.SET_DATA, value })
+export const SetDataAction = (value: Loadable<Data>): SetDataAction => ({ type: GlobalActionType.SET_DATA, value })
 
-type SetThemeAction = {
-  type: GlobalActionType.SET_THEME,
-  value: ColorTheme
+type SetAxisAction = {
+  type: GlobalActionType.SET_AXIS,
+  axis: Axis,
+  value: string | undefined,
 }
-export const SetThemeAction = (value: ColorTheme): SetThemeAction => ({ type: GlobalActionType.SET_THEME, value })
+export const SetAxisAction = (axis: Axis, value: string | undefined): SetAxisAction => ({ type: GlobalActionType.SET_AXIS, axis, value })
 
-export type GlobalAction = BaseAction & (SetColumnsAction | SetDataAction | SetThemeAction)
+export type GlobalAction = BaseAction & (SetColumnsAction | SetDataAction | SetAxisAction)

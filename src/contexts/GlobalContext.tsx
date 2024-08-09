@@ -2,10 +2,10 @@ import { useCallback, useEffect, useMemo } from 'react'
 import { createReducerContext } from '../models/createReducerContext'
 import { initialState, reducer } from '../models/GlobalState'
 import { useDataRequest } from '../hooks/useDataRequest'
-import { DataResponse, HeaderColumn, HeaderColumns } from '../models/DataTransferObject'
-import { SetColumnsAction, SetDataAction, SetThemeAction } from '../models/GlobalAction'
+import { Data, HeaderColumn } from '../models/DataTransferObject'
+import { SetAxisAction, SetColumnsAction, SetDataAction } from '../models/GlobalAction'
 import { Loaded, Loading, LoadingState } from '../models/Loadable'
-import { ColorTheme } from '../models/ColorTheme'
+import { Axis } from '../models/Axis'
 
 const { Provider, useProvider } = createReducerContext(reducer, initialState)
 
@@ -15,47 +15,51 @@ export const useGlobalContext = () => {
   const [ state, dispatch ] = useProvider()
 
   const { getHeaders, getData } = useDataRequest()
-  const { headers, data, theme } = state
+
+  const headers = useMemo(() => state.headers, [state])
+  const data = useMemo(() => state.data, [state])
 
   useEffect(() => {
     requestHeaders()
   }, [])
 
+  const setAxis = useCallback((axis: Axis, value: string | undefined) => {
+    if (state.axes[axis] === value) return
+    dispatch(SetAxisAction(axis, value))
+  }, [state, dispatch, SetAxisAction])
+
   const requestHeaders = useCallback(() => {
     if (state.headers.state === LoadingState.LOADED || state.headers.state === LoadingState.LOADING) return
     dispatch(SetColumnsAction(Loading()))
     getHeaders()
-      .then(r => {
-        const columns = HeaderColumns(r.headers)
-        dispatch(SetColumnsAction(Loaded(columns)))
+      .then(headers => {
+        const value = Object.values(headers.data)
+        dispatch(SetColumnsAction(Loaded(value)))
       })
-  }, [state, getHeaders, HeaderColumns, dispatch, SetColumnsAction])
+  }, [state, getHeaders, dispatch, SetColumnsAction])
 
-  const requestData = useCallback((xCol: number, yCol: number) => {
+  const requestData = useCallback((xCol: string, yCol: string) => {
     if (state.data.state === LoadingState.LOADING) return
-    if (state.data.state === LoadingState.LOADED && state.data.value.xCol === xCol && state.data.value.yCol === yCol) return
+    if (state.data.state === LoadingState.LOADED && state.axes.x === xCol && state.axes.y === yCol) return
     dispatch(SetDataAction(Loading()))
-    getData(xCol, yCol)
+    getData([xCol, yCol])
       .then(r => {
-        dispatch(SetDataAction(Loaded(DataResponse(r))))
+        dispatch(SetDataAction(Loaded(Data(r))))
       })
   }, [state, getData, dispatch, SetDataAction])
 
-  const setTheme = useCallback((theme: ColorTheme) => {
-    dispatch(SetThemeAction(theme))
-  }, [dispatch, SetThemeAction])
-
-  const columns: [HeaderColumn?, HeaderColumn?] = useMemo(() => {
-    if (headers.state === LoadingState.LOADED && data.state === LoadingState.LOADED) {
-      return [headers.value.find(v => v.id === data.value.xCol), headers.value.find(v => v.id === data.value.yCol)]
+  const axes: {[K in Axis]: HeaderColumn | undefined} = useMemo(() => {
+    if (headers.state === LoadingState.LOADED) {
+      return Object.entries(state.axes).reduce((o, [k, v]) => {
+        return {...o, [k]: headers.value.find(c => c.id === v)}
+      }, {}) as {[K in Axis]: HeaderColumn}
     }
-    return [undefined, undefined]
-  }, [headers, data])
+    return Object.entries(state.axes).reduce((o, [k]) => ({...o, [k]: undefined}), {}) as {[K in Axis]: undefined}
+  }, [state])
 
   return {
     requestHeaders, headers,
     requestData, data,
-    setTheme, theme,
-    columns
+    setAxis, axes
   }
 }

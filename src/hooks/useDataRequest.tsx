@@ -1,7 +1,7 @@
-import { DataResponseDTO, HeaderColumnDTO } from "../models/DataTransferObject"
+import { DataResponse, HeaderColumn, HeaderColumnMap } from "../models/DataTransferObject"
 
 export const useDataRequest = () => {
-  const getHeaders = (): Promise<{headers: HeaderColumnDTO[]}> => {
+  const getHeaders = (): Promise<{time: number, data: HeaderColumnMap}> => {
     return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=headers`, {
       headers: {
         'Content-Type': 'application/json',
@@ -11,8 +11,8 @@ export const useDataRequest = () => {
       .then(r => r.json())
   }
 
-  const getData = (xCol: number, yCol: number): Promise<DataResponseDTO> => {
-    return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=data&colx=${xCol + 1}&coly=${yCol + 1}&scalex=10&scaley=10&race=all&age=all`, {
+  const getData = (columns: string[]): Promise<DataResponse> => {
+    return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=rollup&columns=${columns.join(',')}`, {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
