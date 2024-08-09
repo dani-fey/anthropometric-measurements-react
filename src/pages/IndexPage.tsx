@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { Box, Card, Grid, Sheet, Stack, Typography } from '@mui/joy'
+import { Box, Card, Chip, Grid, IconButton, Input, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
 import { useGlobalContext } from '../contexts/GlobalContext'
 import { LoadingState } from '../models/Loadable'
 import { ParentSize } from '@visx/responsive'
@@ -8,6 +8,9 @@ import { ScatterChart } from '../components/ScatterChart'
 import { ColumnSelector } from '../components/ColumnSelector'
 import { HeaderColumn } from '../models/DataTransferObject'
 import { Axis } from '../models/Axis'
+import { Add, Delete } from '@mui/icons-material'
+import { useSeriesColor } from '../hooks/useSeriesColor'
+import { Filter } from '../models/Filter'
 
 const ChartControls = ({ onSubmit }: {onSubmit: (xAxis: string, yAxis: string) => void}) => {
   const [ xAxis, setXAxis ] = useState<string | undefined>(undefined)
@@ -39,8 +42,56 @@ const Title = () => {
   </Typography>
 }
 
+const SeriesCard = () => {
+  const { series, addSeries, removeSeries, setSeriesName, setSeriesFilter } = useGlobalContext()
+
+  const theme = useTheme()
+  const { getSeriesColor } = useSeriesColor()
+
+  return <Card>
+    <Typography level='title-lg'>
+      Series
+      <span style={{marginInlineStart: '0.25em', verticalAlign: 'sub'}}>
+        <IconButton size='sm' color='primary' onClick={_ => addSeries()}>
+          <Add />
+        </IconButton>
+      </span>
+    </Typography>
+    <Table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Filters</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {series.map((s, i) => <tr key={s.id}>
+          <td>
+            <Stack direction='row'>
+              <Input startDecorator={<Chip size='sm' sx={{bgcolor: getSeriesColor(i)}} />} onChange={v => setSeriesName(s.id, v.target.value)}></Input>
+            </Stack>
+          </td>
+          <td>
+            <Stack direction='row' sx={{alignItems: 'center'}}>
+              <Select onChange={(_, v) => setSeriesFilter(s.id, v as Filter)} placeholder={<Typography color='neutral'>No filters</Typography>}>
+                {Object.values(Filter).map(v => <Option key={v} value={v}>{v}</Option>)}
+              </Select>
+            </Stack>
+          </td>
+          <td style={{textAlign: 'right'}}>
+            <IconButton size='sm' color='danger' onClick={_ => removeSeries(s.id)}>
+              <Delete />
+            </IconButton>
+          </td>
+        </tr>)}
+      </tbody>
+    </Table>
+  </Card>
+}
+
 const ChartCard = () => {
-  const { headers, data, axes } = useGlobalContext()
+  const { headers, data, axes, series } = useGlobalContext()
 
   const headersLoaded = headers.state === LoadingState.LOADED
   const dataLoaded = data.state === LoadingState.LOADED
@@ -51,7 +102,7 @@ const ChartCard = () => {
     <Card>
       <div style={{width: '100%', aspectRatio: 2}}>
         <ParentSize debounceTime={0}>
-          {parent => <ScatterChart data={data.value} width={parent.width} height={parent.height} xAxis={axes.x!} yAxis={axes.y!} />}
+          {parent => <ScatterChart data={data.value} width={parent.width} height={parent.height} xAxis={axes.x!} yAxis={axes.y!} series={series} />}
         </ParentSize>
       </div>
     </Card>  
@@ -71,12 +122,14 @@ export const IndexPage = () => {
     <Stack direction='column' spacing={2}>
       <Title />
       <Card>
+        <Typography level='title-lg'>Axes</Typography>
         <ChartControls onSubmit={(x, y) => {
           setAxis(Axis.X, x)
           setAxis(Axis.Y, y)
           requestData(x, y)
         }} />
       </Card>
+      <SeriesCard />
       <ChartCard />
     </Stack>
   </Box>

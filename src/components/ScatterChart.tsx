@@ -10,9 +10,14 @@ import { Data, HeaderColumn, Datum } from "../models/DataTransferObject"
 import { Group } from "@visx/group"
 import { Circle } from "@visx/shape"
 import { useGlobalContext } from "../contexts/GlobalContext"
+import { Series } from "../models/Series"
+import { useSeriesColor } from "../hooks/useSeriesColor"
+import { Filter } from "../models/Filter"
+
+type DatumWithSeries = {series: string, seriesIndex: number} & Datum
 
 type TooltipCard_Props = {
-  point: Datum
+  point: DatumWithSeries
 }
 
 const TooltipCard = ({ point }: TooltipCard_Props) => {
@@ -25,7 +30,7 @@ const TooltipCard = ({ point }: TooltipCard_Props) => {
 
   return <>
     <Card size='sm' sx={{pointerEvents: 'none', transform: `translate(1em, 1em)`}}>
-      <Typography level='body-sm' sx={{fontWeight: 600}}>Series {point.series}</Typography>
+      <Typography level='body-sm' sx={{fontWeight: 600}}>{point.series}</Typography>
       <Typography level='body-xs'>
         <Typography sx={{fontWeight: 600}}>{xLabel}: </Typography>
         <Typography>{point.x}</Typography>
@@ -44,13 +49,22 @@ type ScatterChart_Props = {
   data: Data,
   xAxis: HeaderColumn,
   yAxis: HeaderColumn,
+  series: Series[],
   width: number,
   height: number
 }
 
 export const ScatterChart = (props: ScatterChart_Props) => {
-  const { width, height, xAxis, yAxis } = props
-  const data = props.data.data.map(v => ({x: v[xAxis.id], y: v[yAxis.id], series: 0}))
+  const { width, height, xAxis, yAxis, series } = props
+  const allData = props.data.data
+  console.log(allData)
+  const data: DatumWithSeries[] = series.flatMap((s, i) => allData
+    .filter(v => {
+      if (s.filter === Filter.MEN) return v['GENDER'] === 1
+      else if (s.filter === Filter.WOMEN) return v['GENDER'] === 2
+      return true
+    })
+    .map(v => ({x: v[xAxis.id], y: v[yAxis.id], series: s.name, seriesIndex: i}))) as unknown[] as DatumWithSeries[]
 
   const min = (axis: string) => props.data.statistics[axis].min
   const max = (axis: string) => props.data.statistics[axis].max
@@ -69,8 +83,9 @@ export const ScatterChart = (props: ScatterChart_Props) => {
   const expandFactor = 0.1
 
   const theme = useTheme()
+  const { getSeriesColor } = useSeriesColor()
   
-  const { showTooltip, hideTooltip, tooltipOpen, tooltipLeft, tooltipTop, tooltipData } = useTooltip<Datum>({})
+  const { showTooltip, hideTooltip, tooltipOpen, tooltipLeft, tooltipTop, tooltipData } = useTooltip<DatumWithSeries>({})
 
   const svgRef = useRef<SVGSVGElement>(null)
 
@@ -91,7 +106,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
   }, [yMin, yMax, height])
 
   const voronoiLayout = useMemo(() => {
-    return voronoi<Datum>({
+    return voronoi<DatumWithSeries>({
       x: d => xScale(d.x),
       y: d => yScale(d.y),
       width,
@@ -126,8 +141,8 @@ export const ScatterChart = (props: ScatterChart_Props) => {
             className='point'
             cx={xScale(d.x)}
             cy={yScale(d.y)}
-            r={tooltipData === d ? 5 : 2}
-            fill={d.series === 0 ? theme.palette.danger[400] : theme.palette.primary[400]}
+            r={(tooltipData === d) ? 5 : 2}
+            fill={getSeriesColor(d.seriesIndex)}
           />
         })}
       </Group>
