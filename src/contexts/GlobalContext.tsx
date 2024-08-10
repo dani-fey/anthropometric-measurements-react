@@ -85,6 +85,7 @@ export const useGlobalContext = () => {
     dispatch(RemoveSeriesFilterAction(seriesId, filterId))
   }, [dispatch, RemoveSeriesFilterAction])
 
+  return {}
   return {
     requestHeaders, headers,
     requestData, data,

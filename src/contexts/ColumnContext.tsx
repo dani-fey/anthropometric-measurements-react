@@ -1,4 +1,4 @@
-import { createContext, ReactNode, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { HeaderColumnMap } from "../models/DataTransferObject";
 import { useDataRequest } from "../hooks/useDataRequest";
 
@@ -23,8 +23,8 @@ export const ColumnContextProvider = ({ children }: {children: ReactNode}) => {
 
 export const useColumnContext = () => {
   const columns = useContext(ColumnContext)
-
+  const loaded = useMemo(() => !!columns.length, [columns])
   const getColumn = useCallback((id: string) => columns[id], [columns])
 
-  return { columns, getColumn }
+  return { columns, loaded, getColumn }
 }

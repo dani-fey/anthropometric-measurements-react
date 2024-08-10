@@ -13,7 +13,9 @@ import { useGlobalContext } from "../contexts/GlobalContext"
 import { Series } from "../models/Series"
 import { useSeriesColor } from "../hooks/useSeriesColor"
 import { Filter } from "../models/Filter"
+import { Tuple4 } from "../models/Tuple"
 
+/*
 type DatumWithSeries = {series: string, seriesIndex: number} & Datum
 
 type TooltipCard_Props = {
@@ -44,75 +46,89 @@ const TooltipCard = ({ point }: TooltipCard_Props) => {
     </Card>
   </>
 }
+  */
 
+type Point = {x: number, y: number}
+type Series = {label: string, points: Point[]}
+type PointWithSeries = Point & Omit<Series, 'points'>
+type Axis = {label: string, unit: string}
+type AxisStatistics = {xMin: number, xMax: number, dx: number, yMin: number, yMax: number, dy: number}
+const AxisStatistics = (points: Point[]): AxisStatistics => {
+  if (!points.length) return {xMin: 0, xMax: 0, dx: 0, yMin: 0, yMax: 0, dy: 0}
+  const [first, ...rest] = points
+  let [xMin, xMax, yMin, yMax] = [first.x, first.x, first.y, first.y]
+  rest.forEach(p => {
+    xMin = Math.min(p.x, xMin)
+    xMax = Math.max(p.x, xMax)
+    yMin = Math.min(p.y, yMin)
+    yMax = Math.max(p.y, yMax)
+  })
+  const [dx, dy] = [xMax - xMin, yMax - yMin]
+  return {xMin, xMax, dx, yMin, yMax, dy}
+}
 type ScatterChart_Props = {
-  data: Data,
-  xAxis: HeaderColumn,
-  yAxis: HeaderColumn,
   series: Series[],
+  xAxis: Axis,
+  yAxis: Axis,
   width: number,
   height: number
 }
 
+const margin = {
+  top: 40,
+  right: 40,
+  left: 80,
+  bottom: 60,
+}
+const expandFactor = 0.1
+
 export const ScatterChart = (props: ScatterChart_Props) => {
   const { width, height, xAxis, yAxis, series } = props
-  const allData = props.data.data
-  console.log(allData)
-  const data: DatumWithSeries[] = series.flatMap((s, i) => allData
-    .filter(v => {
-      if (s.filter === Filter.MEN) return v['GENDER'] === 1
-      else if (s.filter === Filter.WOMEN) return v['GENDER'] === 2
-      return true
+  const allData: PointWithSeries[] = useMemo(() => {
+    return series.flatMap(s => {
+      const {points, ...seriesWithoutPoints} = s
+      return points.map(p => ({...p, ...seriesWithoutPoints}))
     })
-    .map(v => ({x: v[xAxis.id], y: v[yAxis.id], series: s.name, seriesIndex: i}))) as unknown[] as DatumWithSeries[]
+  }, [series])
+  console.log('allData', allData)
 
-  const min = (axis: string) => props.data.statistics[axis].min
-  const max = (axis: string) => props.data.statistics[axis].max
-  const delta = (axis: string) => max(axis) - min(axis)
-  const stats = (axis: string) => [min(axis), delta(axis), max(axis)]
+  const statistics: AxisStatistics = useMemo(() => AxisStatistics(allData), [allData])
+  console.log('statistics', statistics)
 
-  const [xMin, dx, xMax] = stats(xAxis.id)
-  const [yMin, dy, yMax] = stats(yAxis.id)
-
-  const margin = {
-    top: 40,
-    right: 40,
-    left: 80,
-    bottom: 60,
-  }
-  const expandFactor = 0.1
 
   const theme = useTheme()
   const { getSeriesColor } = useSeriesColor()
   
-  const { showTooltip, hideTooltip, tooltipOpen, tooltipLeft, tooltipTop, tooltipData } = useTooltip<DatumWithSeries>({})
+  const { showTooltip, hideTooltip, tooltipOpen, tooltipLeft, tooltipTop, tooltipData } = useTooltip<PointWithSeries>({})
 
   const svgRef = useRef<SVGSVGElement>(null)
 
   const xScale = useMemo(() => {
+    const { xMin, dx, xMax } = statistics
     return scaleLinear({
       domain: [xMin - (dx * expandFactor / 2), xMax + (dx * expandFactor / 2)],
       range: [margin.left, width - margin.right],
       nice: true,
     })
-  }, [xMin, xMax, width])
+  }, [statistics, width])
 
   const yScale = useMemo(() => {
+    const { yMin, dy, yMax } = statistics
     return scaleLinear({
       domain: [yMin - (dy * expandFactor / 2), yMax + (dy * expandFactor / 2)],
       range: [height - margin.bottom, margin.top],
       nice: true,
     })
-  }, [yMin, yMax, height])
+  }, [statistics, height])
 
   const voronoiLayout = useMemo(() => {
-    return voronoi<DatumWithSeries>({
+    return voronoi<Point>({
       x: d => xScale(d.x),
       y: d => yScale(d.y),
       width,
       height
-    })(data)
-  }, [voronoi, width, height, xScale, yScale, data])
+    })(allData)
+  }, [voronoi, width, height, xScale, yScale, allData])
 
   const handlePointerMove = useCallback((event: React.PointerEvent<SVGElement>) => {
     if (!svgRef.current) return
@@ -124,7 +140,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
     else showTooltip({
       tooltipLeft: xScale(closest.data.x),
       tooltipTop: yScale(closest.data.y),
-      tooltipData: closest.data,
+      tooltipData: closest.data as PointWithSeries /* TODO kludge */,
     })
   }, [showTooltip, hideTooltip, svgRef, localPoint, voronoiLayout, xScale, yScale])
 
@@ -135,14 +151,14 @@ export const ScatterChart = (props: ScatterChart_Props) => {
         <GridColumns scale={xScale} top={margin.top} width={width - (margin.left + margin.right)} height={height - (margin.top + margin.bottom)} stroke={theme.palette.background.level2} />
         <AxisBottom label={`${xAxis.label} (${xAxis.unit})`} top={height - margin.bottom} scale={xScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
         <AxisLeft label={`${yAxis.label} (${yAxis.unit})`} left={margin.left} scale={yScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
-        {data.map((d, i) => {
+        {allData.map((d, i) => {
           return <Circle
             key={`point-${i}`}
             className='point'
             cx={xScale(d.x)}
             cy={yScale(d.y)}
             r={(tooltipData === d) ? 5 : 2}
-            fill={getSeriesColor(d.seriesIndex)}
+            fill={getSeriesColor(0) /* get series index */}
           />
         })}
       </Group>
@@ -154,7 +170,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
         top={tooltipTop}
         style={{position: 'absolute', pointerEvents: 'none'}}
       >
-        <TooltipCard point={tooltipData} />
+        {/* <TooltipCard point={tooltipData} /> */}
       </TooltipWithBounds>
     </>}
   </>
