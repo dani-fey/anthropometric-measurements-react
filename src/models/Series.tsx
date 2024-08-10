@@ -4,8 +4,8 @@ import { Filter } from './Filter'
 export type Series = {
   id: string,
   name: string,
-  filter: Filter | undefined,
+  filters: Filter[],
 }
 export const Series = (name: string): Series => {
-  return {id: v4(), name, filter: undefined}
+  return {id: v4(), name, filters: []}
 }

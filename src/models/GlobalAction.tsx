@@ -11,6 +11,8 @@ export enum GlobalActionType {
   REMOVE_SERIES,
   SET_SERIES_NAME,
   SET_SERIES_FILTER,
+  ADD_SERIES_FILTER,
+  REMOVE_SERIES_FILTER,
 }
 
 type BaseAction = {
@@ -54,11 +56,18 @@ type SetSeriesNameAction = {
 }
 export const SetSeriesNameAction = (id: string, name: string): SetSeriesNameAction => ({ type: GlobalActionType.SET_SERIES_NAME, id, name })
 
-type SetSeriesFilterAction = {
-  type: GlobalActionType.SET_SERIES_FILTER,
-  id: string,
-  filter: Filter | undefined,
+type AddSeriesFilterAction = {
+  type: GlobalActionType.ADD_SERIES_FILTER,
+  seriesId: string,
+  filter: Filter,
 }
-export const SetSeriesFilterAction = (id: string, filter: Filter | undefined): SetSeriesFilterAction => ({ type: GlobalActionType.SET_SERIES_FILTER, id, filter })
+export const AddSeriesFilterAction = (seriesId: string, filter: Filter): AddSeriesFilterAction => ({ type: GlobalActionType.ADD_SERIES_FILTER, seriesId, filter })
 
-export type GlobalAction = BaseAction & (SetColumnsAction | SetDataAction | SetAxisAction | AddSeriesAction | RemoveSeriesAction | SetSeriesNameAction | SetSeriesFilterAction)
+type RemoveSeriesFilterAction = {
+  type: GlobalActionType.REMOVE_SERIES_FILTER,
+  seriesId: string,
+  filterId: string,
+}
+export const RemoveSeriesFilterAction = (seriesId: string, filterId: string): RemoveSeriesFilterAction => ({ type: GlobalActionType.REMOVE_SERIES_FILTER, seriesId, filterId })
+
+export type GlobalAction = BaseAction & (SetColumnsAction | SetDataAction | SetAxisAction | AddSeriesAction | RemoveSeriesAction | SetSeriesNameAction | AddSeriesFilterAction | RemoveSeriesFilterAction)

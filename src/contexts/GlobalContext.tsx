@@ -3,7 +3,7 @@ import { createReducerContext } from '../models/createReducerContext'
 import { initialState, reducer } from '../models/GlobalState'
 import { useDataRequest } from '../hooks/useDataRequest'
 import { Data, HeaderColumn } from '../models/DataTransferObject'
-import { AddSeriesAction, RemoveSeriesAction, SetAxisAction, SetColumnsAction, SetDataAction, SetSeriesFilterAction, SetSeriesNameAction } from '../models/GlobalAction'
+import { AddSeriesAction, AddSeriesFilterAction, RemoveSeriesAction, RemoveSeriesFilterAction, SetAxisAction, SetColumnsAction, SetDataAction, SetSeriesNameAction } from '../models/GlobalAction'
 import { Loaded, Loading, LoadingState } from '../models/Loadable'
 import { Axis } from '../models/Axis'
 import { Filter } from '../models/Filter'
@@ -28,6 +28,11 @@ export const useGlobalContext = () => {
     }
     return Object.entries(state.axes).reduce((o, [k]) => ({...o, [k]: undefined}), {}) as {[K in Axis]: undefined}
   }, [state])
+  const columnIds = useMemo(() => {
+    const axisColumns = Object.values(axes).filter(a => a !== undefined).map(a => a.id)
+    const filterColumns = series.flatMap(s => s.filters.flatMap(f => f.column))
+    return Array.from(new Set([...axisColumns, ...filterColumns]))
+  }, [axes, series])
 
   useEffect(() => {
     requestHeaders()
@@ -48,11 +53,13 @@ export const useGlobalContext = () => {
       })
   }, [state, getHeaders, dispatch, SetColumnsAction])
 
-  const requestData = useCallback((xCol: string, yCol: string) => {
+  const requestData = useCallback((columnIds: string[]) => {
+    console.log(state.data.state)
     if (state.data.state === LoadingState.LOADING) return
-    if (state.data.state === LoadingState.LOADED && state.axes.x === xCol && state.axes.y === yCol) return
+    //if (state.data.state === LoadingState.LOADED && state.axes.x === xCol && state.axes.y === yCol) return
     dispatch(SetDataAction(Loading()))
-    getData([xCol, yCol])
+    console.log(columnIds)
+    getData(columnIds)
       .then(r => {
         dispatch(SetDataAction(Loaded(Data(r))))
       })
@@ -70,14 +77,19 @@ export const useGlobalContext = () => {
     dispatch(SetSeriesNameAction(id, name))
   }, [dispatch, SetSeriesNameAction])
 
-  const setSeriesFilter = useCallback((id: string, filter: Filter | undefined) => {
-    dispatch(SetSeriesFilterAction(id, filter))
-  }, [dispatch, SetSeriesFilterAction])
+  const addSeriesFilter = useCallback((seriesId: string, filter: Filter) => {
+    dispatch(AddSeriesFilterAction(seriesId, filter))
+  }, [dispatch, AddSeriesFilterAction])
+
+  const removeSeriesFilter = useCallback((seriesId: string, filterId: string) => {
+    dispatch(RemoveSeriesFilterAction(seriesId, filterId))
+  }, [dispatch, RemoveSeriesFilterAction])
 
   return {
     requestHeaders, headers,
     requestData, data,
     setAxis, axes,
-    addSeries, removeSeries, setSeriesName, setSeriesFilter, series
+    addSeries, removeSeries, setSeriesName, addSeriesFilter, removeSeriesFilter, series,
+    columnIds
   }
 }

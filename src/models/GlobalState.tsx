@@ -26,6 +26,7 @@ export const reducer = (state: GlobalState, action: GlobalAction): GlobalState =
   if (type === GlobalActionType.ADD_SERIES) return {...state, series: [...state.series, Series('')]}
   if (type === GlobalActionType.REMOVE_SERIES) return {...state, series: state.series.filter(s => s.id !== action.id)}
   if (type === GlobalActionType.SET_SERIES_NAME) return {...state, series: state.series.map(s => s.id === action.id ? {...s, name: action.name} : s)}
-  if (type === GlobalActionType.SET_SERIES_FILTER) return {...state, series: state.series.map(s => s.id === action.id ? {...s, filter: action.filter} : s)}
+  if (type === GlobalActionType.ADD_SERIES_FILTER) return {...state, series: state.series.map(s => s.id === action.seriesId ? {...s, filters: [...s.filters, action.filter]} : s)}
+  if (type === GlobalActionType.REMOVE_SERIES_FILTER) return {...state, series: state.series.map(s => s.id === action.seriesId ? {...s, filters: s.filters.filter(f => f.id !== action.filterId)} : s)}
   return state
 }

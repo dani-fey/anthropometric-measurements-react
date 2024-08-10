@@ -116,7 +116,13 @@ const ChartCard = () => {
 }
 
 export const IndexPage = () => {
-  const { requestData, setAxis } = useGlobalContext()
+  const { requestData, setAxis, axes, series, columnIds } = useGlobalContext()
+
+  useEffect(() => {
+    console.log(columnIds)
+    if (columnIds.length < 2) return
+    requestData(columnIds)
+  }, [columnIds])
 
   return <Box sx={{p: 2, maxWidth: 1200, mx: 'auto'}}>
     <Stack direction='column' spacing={2}>
@@ -126,7 +132,6 @@ export const IndexPage = () => {
         <ChartControls onSubmit={(x, y) => {
           setAxis(Axis.X, x)
           setAxis(Axis.Y, y)
-          requestData(x, y)
         }} />
       </Card>
       <SeriesCard />
