@@ -103,9 +103,13 @@ const ChartCard = ({ xAxis, yAxis }: {xAxis: HeaderColumn | undefined, yAxis: He
   const dataLoaded = data !== undefined
 
   useEffect(() => {
+    setData(undefined)
+  }, [xAxis, yAxis])
+
+  useEffect(() => {
     if (!canLoadData || dataLoaded) return
     getData([xAxis.id, yAxis.id])
-      .then(v => setData(v.data))    
+      .then(v => setData(v.data))
   }, [canLoadData, dataLoaded])
 
   const defaultSeries = useMemo(() => {
