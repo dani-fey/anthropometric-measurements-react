@@ -1,20 +1,21 @@
 import { Typography, FormControl, FormLabel, Option, Select, Stack } from "@mui/joy"
 import { useState, useMemo } from "react"
-import { useGlobalContext } from "../contexts/GlobalContext"
-import { LoadingState } from "../models/Loadable"
+import { useHeaderContext } from "../contexts/HeaderContext"
 
 export const ColumnSelector = ({ label, onChange }: {label: string, onChange: (column: string) => void}) => {
-  const { headers } = useGlobalContext()
+  const { headers, getColumn } = useHeaderContext()
 
   const [ value, setValue ] = useState<string | undefined>(undefined)
 
-  const optionValues = useMemo(() => headers.state === LoadingState.LOADED ? headers.value.filter(h => !!h.include) : [], [headers])
+  const optionValues = useMemo(() => Object.values(headers).filter(h => !!h.include), [headers])
   const optionComponents = useMemo(() => optionValues.map(o => <Option sx={{maxWidth: 'min(640px, 100vw)'}} key={o.id} value={o.id} label={<>{o.label}&nbsp;<Typography color='neutral'>({o.unit})</Typography></>}>
     <Stack direction='column'>
       <Typography>{o.label} <Typography color='neutral'>({o.unit})</Typography></Typography>
       <Typography level='body-xs' color='neutral'>{o.description}</Typography>
     </Stack>
   </Option>), [optionValues])
+
+  const description = useMemo(() => !!value ? getColumn(value).description : undefined, [value])
 
   const handleChange = (next: string) => {
     setValue(next)
@@ -27,7 +28,7 @@ export const ColumnSelector = ({ label, onChange }: {label: string, onChange: (c
       <Select onChange={(_, v) => handleChange(v as string)}>
         {optionComponents}
       </Select>
-      {value !== undefined && headers.state === LoadingState.LOADED && <Typography sx={{mt: 1}} color='neutral' level='body-xs'>{headers.value.find(h => h.id === value)?.description}</Typography>}
+      {description !== undefined && <Typography sx={{mt: 1}} color='neutral' level='body-xs'>{description}</Typography>}
     </FormControl>
   </>
 }
