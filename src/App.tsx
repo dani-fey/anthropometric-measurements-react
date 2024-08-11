@@ -3,7 +3,7 @@ import { BasePage } from './pages/BasePage'
 import { IndexPage } from './pages/IndexPage'
 import { GlobalContextProvider } from './contexts/GlobalContext'
 import { CssBaseline, CssVarsProvider } from '@mui/joy'
-import { ColumnContextProvider } from './contexts/ColumnContext'
+import { HeaderContextProvider } from './contexts/HeaderContext'
 
 const router = createBrowserRouter([
   {
@@ -23,10 +23,10 @@ export const App = () => {
     <CssBaseline />
     <CssVarsProvider defaultMode='system'>
       {/* <GlobalContextProvider> */}
-        <ColumnContextProvider>
+        <HeaderContextProvider>
           <RouterProvider router={router} />
 
-        </ColumnContextProvider>
+        </HeaderContextProvider>
       {/* </GlobalContextProvider> */}
     </CssVarsProvider>
   </>

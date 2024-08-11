@@ -23,8 +23,11 @@ export const HeaderContextProvider = ({ children }: {children: ReactNode}) => {
 
 export const useHeaderContext = () => {
   const headers = useContext(HeaderContext)
-  const loaded = useMemo(() => !!headers.length, [headers])
+  const loaded = useMemo(() => !!Object.keys(headers).length, [headers])
   const getColumn = useCallback((id: string) => headers[id], [headers])
+
+  useEffect(() => console.log(loaded), [loaded])
+  useEffect(() => console.log(headers), [headers])
 
   return { headers, loaded, getColumn }
 }

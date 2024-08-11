@@ -1,75 +1,24 @@
-import { Card, Typography, useTheme } from "@mui/joy"
-import { useRef, useMemo, useCallback, useEffect } from "react"
+import { useTheme } from "@mui/joy"
+import { useRef, useMemo, useCallback } from "react"
 import { AxisBottom, AxisLeft } from '@visx/axis'
 import { localPoint } from '@visx/event'
 import { GridRows, GridColumns } from '@visx/grid'
 import { scaleLinear } from '@visx/scale'
 import { useTooltip, TooltipWithBounds } from '@visx/tooltip'
 import { voronoi } from '@visx/voronoi'
-import { Data, HeaderColumn, Datum } from "../models/DataTransferObject"
 import { Group } from "@visx/group"
 import { Circle } from "@visx/shape"
-import { useGlobalContext } from "../contexts/GlobalContext"
-import { Series } from "../models/Series"
 import { useSeriesColor } from "../hooks/useSeriesColor"
-import { Filter } from "../models/Filter"
-import { Tuple4 } from "../models/Tuple"
+import { PointWithSeries, AxisStatistics, Point, Series } from "../models/Chart"
+import { TooltipCard } from "./TooltipCard"
+import { HeaderColumn } from "../models/DataTransferObject"
 
-/*
-type DatumWithSeries = {series: string, seriesIndex: number} & Datum
 
-type TooltipCard_Props = {
-  point: DatumWithSeries
-}
 
-const TooltipCard = ({ point }: TooltipCard_Props) => {
-  const { axes } = useGlobalContext()
-
-  const xLabel = useMemo(() => axes.x?.label || '', [axes])
-  const xUnit = useMemo(() => axes.x?.unit || '', [axes])
-  const yLabel = useMemo(() => axes.y?.label || '', [axes])
-  const yUnit = useMemo(() => axes.y?.unit || '', [axes])
-
-  return <>
-    <Card size='sm' sx={{pointerEvents: 'none', transform: `translate(1em, 1em)`}}>
-      <Typography level='body-sm' sx={{fontWeight: 600}}>{point.series}</Typography>
-      <Typography level='body-xs'>
-        <Typography sx={{fontWeight: 600}}>{xLabel}: </Typography>
-        <Typography>{point.x}</Typography>
-        <Typography> {xUnit}</Typography>
-      </Typography>
-      <Typography level='body-xs'>
-        <Typography sx={{fontWeight: 600}}>{yLabel}: </Typography>
-        <Typography>{point.y}</Typography>
-        <Typography> {yUnit}</Typography>
-      </Typography>
-    </Card>
-  </>
-}
-  */
-
-type Point = {x: number, y: number}
-type Series = {label: string, points: Point[]}
-type PointWithSeries = Point & Omit<Series, 'points'>
-type Axis = {label: string, unit: string}
-type AxisStatistics = {xMin: number, xMax: number, dx: number, yMin: number, yMax: number, dy: number}
-const AxisStatistics = (points: Point[]): AxisStatistics => {
-  if (!points.length) return {xMin: 0, xMax: 0, dx: 0, yMin: 0, yMax: 0, dy: 0}
-  const [first, ...rest] = points
-  let [xMin, xMax, yMin, yMax] = [first.x, first.x, first.y, first.y]
-  rest.forEach(p => {
-    xMin = Math.min(p.x, xMin)
-    xMax = Math.max(p.x, xMax)
-    yMin = Math.min(p.y, yMin)
-    yMax = Math.max(p.y, yMax)
-  })
-  const [dx, dy] = [xMax - xMin, yMax - yMin]
-  return {xMin, xMax, dx, yMin, yMax, dy}
-}
 type ScatterChart_Props = {
   series: Series[],
-  xAxis: Axis,
-  yAxis: Axis,
+  xAxis: HeaderColumn,
+  yAxis: HeaderColumn,
   width: number,
   height: number
 }
@@ -90,11 +39,8 @@ export const ScatterChart = (props: ScatterChart_Props) => {
       return points.map(p => ({...p, ...seriesWithoutPoints}))
     })
   }, [series])
-  console.log('allData', allData)
 
   const statistics: AxisStatistics = useMemo(() => AxisStatistics(allData), [allData])
-  console.log('statistics', statistics)
-
 
   const theme = useTheme()
   const { getSeriesColor } = useSeriesColor()
@@ -170,9 +116,8 @@ export const ScatterChart = (props: ScatterChart_Props) => {
         top={tooltipTop}
         style={{position: 'absolute', pointerEvents: 'none'}}
       >
-        {/* <TooltipCard point={tooltipData} /> */}
+        <TooltipCard point={tooltipData} xAxis={xAxis} yAxis={yAxis} />
       </TooltipWithBounds>
     </>}
   </>
 }
-

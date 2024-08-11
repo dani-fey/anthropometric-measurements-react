@@ -1,16 +1,16 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Box, Card, Chip, Grid, IconButton, Input, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
 import { useGlobalContext } from '../contexts/GlobalContext'
-import { LoadingState } from '../models/Loadable'
 import { ParentSize } from '@visx/responsive'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { ScatterChart } from '../components/ScatterChart'
 import { ColumnSelector } from '../components/ColumnSelector'
-import { HeaderColumn } from '../models/DataTransferObject'
-import { Axis } from '../models/Axis'
 import { Add, Delete } from '@mui/icons-material'
 import { useSeriesColor } from '../hooks/useSeriesColor'
 import { Filter } from '../models/Filter'
+import { useHeaderContext } from '../contexts/HeaderContext'
+import { Datum, HeaderColumn } from '../models/DataTransferObject'
+import { useDataRequest } from '../hooks/useDataRequest'
 
 const ChartControls = ({ onSubmit }: {onSubmit: (xAxis: string, yAxis: string) => void}) => {
   const [ xAxis, setXAxis ] = useState<string | undefined>(undefined)
@@ -42,6 +42,7 @@ const Title = () => {
   </Typography>
 }
 
+/*
 const SeriesCard = () => {
   const { series, addSeries, removeSeries, setSeriesName, setSeriesFilter } = useGlobalContext()
 
@@ -89,20 +90,37 @@ const SeriesCard = () => {
     </Table>
   </Card>
 }
+*/
 
-const ChartCard = () => {
-  const { headers, data, axes, series } = useGlobalContext()
+const ChartCard = ({ xAxis, yAxis }: {xAxis: HeaderColumn | undefined, yAxis: HeaderColumn | undefined}) => {
+  const { loaded: headersLoaded, headers } = useHeaderContext()
+  const { getData } = useDataRequest()
 
-  const headersLoaded = headers.state === LoadingState.LOADED
-  const dataLoaded = data.state === LoadingState.LOADED
-  const axesDefined = axes.x !== undefined && axes.y !== undefined
-  const dataLoadedForAxes = dataLoaded && axesDefined && (!data.value.data.length || ([axes.x!.id, axes.y!.id].every(column => Object.keys(data.value.data[0]).includes(column))))
+  const [ data, setData ] = useState<Datum[] | undefined>(undefined)
 
-  if (headersLoaded && dataLoadedForAxes) return <>
+  const axesDefined = !!xAxis && !!yAxis
+  const canLoadData = headersLoaded && axesDefined
+  const dataLoaded = data !== undefined
+
+  useEffect(() => {
+    if (!canLoadData || dataLoaded) return
+    getData([xAxis.id, yAxis.id])
+      .then(v => setData(v.data))    
+  }, [canLoadData, dataLoaded])
+
+  const defaultSeries = useMemo(() => {
+    if (!dataLoaded) return undefined
+    const points = data.map(d => ({x: d[xAxis!.id], y: d[yAxis!.id]}))
+    return {label: 'Default', points}
+  }, [dataLoaded])
+
+  const series = [defaultSeries].filter(s => s !== undefined)
+
+  if (headersLoaded && axesDefined && dataLoaded) return <>
     <Card>
       <div style={{width: '100%', aspectRatio: 2}}>
         <ParentSize debounceTime={0}>
-          {parent => <ScatterChart data={data.value} width={parent.width} height={parent.height} xAxis={axes.x!} yAxis={axes.y!} series={series} />}
+          {parent => <ScatterChart series={series} width={parent.width} height={parent.height} xAxis={xAxis} yAxis={yAxis} />}
         </ParentSize>
       </div>
     </Card>  
@@ -115,27 +133,32 @@ const ChartCard = () => {
   </Card>
 }
 
+const ChartView = () => {
+  const { headers, getColumn } = useHeaderContext()
+
+  const [xAxis, setXAxis] = useState<HeaderColumn | undefined>(undefined)
+  const [yAxis, setYAxis] = useState<HeaderColumn | undefined>(undefined)
+
+  const handleSubmitAxes = (x: string, y: string) => {
+    setXAxis(getColumn(x))
+    setYAxis(getColumn(y))
+  }
+
+  return <Stack direction='column' spacing={2}>
+    <Card>
+      <Typography level='title-lg'>Axes</Typography>
+      <ChartControls onSubmit={handleSubmitAxes} />
+    </Card>
+    {/* <SeriesCard /> */}
+    <ChartCard xAxis={xAxis} yAxis={yAxis} />
+  </Stack>
+}
+
 export const IndexPage = () => {
-  const { requestData, setAxis, axes, series, columnIds } = useGlobalContext()
-
-  useEffect(() => {
-    console.log(columnIds)
-    if (columnIds.length < 2) return
-    requestData(columnIds)
-  }, [columnIds])
-
   return <Box sx={{p: 2, maxWidth: 1200, mx: 'auto'}}>
     <Stack direction='column' spacing={2}>
       <Title />
-      <Card>
-        <Typography level='title-lg'>Axes</Typography>
-        <ChartControls onSubmit={(x, y) => {
-          setAxis(Axis.X, x)
-          setAxis(Axis.Y, y)
-        }} />
-      </Card>
-      <SeriesCard />
-      <ChartCard />
+      <ChartView />
     </Stack>
   </Box>
 }

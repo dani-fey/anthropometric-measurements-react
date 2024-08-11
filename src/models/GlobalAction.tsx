@@ -1,4 +1,3 @@
-import { Axis } from "./Axis"
 import { Data, HeaderColumn } from "./DataTransferObject"
 import { Filter } from "./Filter"
 import { Loadable } from "./Loadable"
