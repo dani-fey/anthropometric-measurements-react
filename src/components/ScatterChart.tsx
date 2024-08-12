@@ -7,9 +7,9 @@ import { scaleLinear } from '@visx/scale'
 import { useTooltip, TooltipWithBounds } from '@visx/tooltip'
 import { voronoi } from '@visx/voronoi'
 import { Group } from "@visx/group"
-import { Circle } from "@visx/shape"
+import { Area, Circle, Line, LinePath } from "@visx/shape"
 import { useSeriesColor } from "../hooks/useSeriesColor"
-import { PointWithSeries, AxisStatistics, Point, Series } from "../models/Chart"
+import { PointWithSeries, AxisStatistics, Point, Series, LinearRegression } from "../models/Chart"
 import { TooltipCard } from "./TooltipCard"
 import { HeaderColumn } from "../models/DataTransferObject"
 
@@ -39,6 +39,8 @@ export const ScatterChart = (props: ScatterChart_Props) => {
   }, [series])
 
   const statistics: AxisStatistics = useMemo(() => AxisStatistics(allData), [allData])
+
+  const regressions: LinearRegression[] = useMemo(() => series.map(s => LinearRegression(s.points)), [series])
 
   const theme = useTheme()
   const { getSeriesColor } = useSeriesColor()
@@ -95,6 +97,25 @@ export const ScatterChart = (props: ScatterChart_Props) => {
         <GridColumns scale={xScale} top={margin.top} width={width - (margin.left + margin.right)} height={height - (margin.top + margin.bottom)} stroke={theme.palette.background.level2} />
         <AxisBottom label={`${xAxis.label} (${xAxis.unit})`} top={height - margin.bottom} scale={xScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
         <AxisLeft label={`${yAxis.label} (${yAxis.unit})`} left={margin.left} scale={yScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
+        {regressions.map((r, i) => {
+          return <Area
+            key={`regression-${i}`}
+            stroke={getSeriesColor(i)}
+            fill={getSeriesColor(i)}
+            opacity={0.2}
+            data={
+              [xScale.domain()[0], xScale.domain()[1]]
+                .map(x => ({x, y0: x * r.a + r.b - r.epsilon, y1: x * r.a + r.b + r.epsilon}))
+            }
+            x={d => xScale(d.x)}
+            y0={d => yScale(d.y0)}
+            y1={d => yScale(d.y1)}
+            /*
+            from={{x: statistics.xMin, y: statistics.xMin * r.a + r.b}}
+            to={{x: statistics.xMax, y: statistics.xMax * r.a + r.b}}
+            */
+          />
+        })}
         {series.flatMap((s, si) => s.points.map((d, pi) => {
           return <Circle
             key={`point-${si}-${pi}`}

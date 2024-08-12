@@ -5,7 +5,7 @@ import { ParentSize } from '@visx/responsive'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { ScatterChart } from '../components/ScatterChart'
 import { ColumnSelector } from '../components/ColumnSelector'
-import { Add, ArrowDropDown, Delete, DeveloperBoard, SmartToy, ViewCozy } from '@mui/icons-material'
+import { Add, ArrowDropDown, Delete, DeveloperBoard, SmartToy, ViewCozy, Wc } from '@mui/icons-material'
 import { useSeriesColor } from '../hooks/useSeriesColor'
 import { useHeaderContext } from '../contexts/HeaderContext'
 import { Datum, HeaderColumn } from '../models/DataTransferObject'
@@ -44,7 +44,7 @@ const Title = () => {
 
 const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => void}) => {
   const { getSeriesColor } = useSeriesColor()
-  const { headers, getColumn } = useHeaderContext()
+  const { visibleHeaders, defaultColumn, getColumn } = useHeaderContext()
 
   const [ series, setSeries ] = useState<SeriesDefinition[]>([])
 
@@ -80,7 +80,7 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
   }
 
   const handleAddFilter = (id: string) => {
-    setSeries(s => s.map(s2 => s2.id === id ? ({...s2, filters: [...s2.filters, Filter(Object.values(headers)[0], Comparator.EQUAL, 0)]}) : s2))
+    setSeries(s => s.map(s2 => s2.id === id ? ({...s2, filters: [...s2.filters, Filter(defaultColumn, Comparator.EQUAL, 0)]}) : s2))
   }
 
   const handleRemoveFilter = (seriesId: string, filterId: string) => {
@@ -113,7 +113,7 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
               <DeveloperBoard />
             </MenuButton>
             <Menu>
-              <MenuItem onClick={handleSetMenVsWomen}>Men vs. Women</MenuItem>
+              <MenuItem onClick={handleSetMenVsWomen}><Wc />Men vs. Women</MenuItem>
             </Menu>
           </Dropdown>
         </Stack>
@@ -126,14 +126,14 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
             <FormLabel>Series Name</FormLabel>
             <Input defaultValue={s.label} startDecorator={<Chip size='sm' sx={{bgcolor: getSeriesColor(i)}} />} onChange={v => handleSetSeriesLabel(s.id, v.target.value)}></Input>
           </FormControl>
-          <FormControl>
-            <FormLabel>Filters</FormLabel>
-            <Stack direction='column' spacing={1}>
-              {s.filters.map(f => <Table>
-                <tbody>
+          <FormLabel>Filters</FormLabel>
+          <Stack direction='column' spacing={1}>
+            {s.filters.map(f => <Table key={f.id}>
+              <tbody>
+                <tr>
                   <td style={{width: '40%'}}>
                     <Select placeholder='Column' defaultValue={f.column.id} onChange={(_, v) => setFilterColumn(s.id, f.id, v as string)}>
-                      {Object.values(headers).map(h => <Option key={h.id} value={h.id}>{h.label}</Option>)}
+                      {visibleHeaders.map(h => <Option key={h.id} value={h.id}>{h.label}</Option>)}
                     </Select>
                   </td>
                   <td style={{width: '30%'}}>
@@ -147,13 +147,13 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
                   <td style={{width: '10%'}}>
                     <IconButton color='danger' variant='soft' onClick={_ => handleRemoveFilter(s.id, f.id)}><Delete /></IconButton>
                   </td>
-                </tbody>
-              </Table>)}
-              <IconButton color='primary' variant='soft' onClick={_ => handleAddFilter(s.id)}>
-                <Add />
-              </IconButton>
-            </Stack>
-          </FormControl>
+                </tr>
+              </tbody>
+            </Table>)}
+            <IconButton color='primary' variant='soft' onClick={_ => handleAddFilter(s.id)}>
+              <Add />
+            </IconButton>
+          </Stack>
           <Divider />
           <IconButton variant='soft' size='sm' color='danger' onClick={_ => handleRemoveSeries(s.id)}>
             <Delete />

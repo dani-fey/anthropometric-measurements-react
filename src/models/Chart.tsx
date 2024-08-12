@@ -55,3 +55,25 @@ export const compare = (comparator: Comparator, compareValue: number) => (dataVa
   else if (comparator === Comparator.LESSER_THAN) return dataValue < compareValue
   return false
 }
+
+export type LinearRegression = {
+  a: number,
+  b: number,
+  epsilon: number,
+}
+export const LinearRegression = (points: Point[]): LinearRegression => {
+  let [ sumX, sumY, sumXSq, sumYSq, sumXY ] = [0, 0, 0, 0, 0]
+  points.forEach(p => {
+    const {x, y} = p
+    sumX += x
+    sumY += y
+    sumXSq += x * x
+    sumYSq += y * y
+    sumXY += x * y
+  })
+  const n = points.length
+  const [tX, tY] = [n * sumXSq - sumX * sumX, n * sumYSq - sumY * sumY]
+  const [a, b] = [(n * sumXY - sumX * sumY) / tX, (sumY * sumXSq - sumX * sumXY) / tX]
+  const epsilon = Math.sqrt(tY - a * a * tX) / n
+  return {a, b, epsilon}
+}
