@@ -13,8 +13,6 @@ import { PointWithSeries, AxisStatistics, Point, Series } from "../models/Chart"
 import { TooltipCard } from "./TooltipCard"
 import { HeaderColumn } from "../models/DataTransferObject"
 
-
-
 type ScatterChart_Props = {
   series: Series[],
   xAxis: HeaderColumn,
@@ -97,16 +95,16 @@ export const ScatterChart = (props: ScatterChart_Props) => {
         <GridColumns scale={xScale} top={margin.top} width={width - (margin.left + margin.right)} height={height - (margin.top + margin.bottom)} stroke={theme.palette.background.level2} />
         <AxisBottom label={`${xAxis.label} (${xAxis.unit})`} top={height - margin.bottom} scale={xScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
         <AxisLeft label={`${yAxis.label} (${yAxis.unit})`} left={margin.left} scale={yScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
-        {allData.map((d, i) => {
+        {series.flatMap((s, si) => s.points.map((d, pi) => {
           return <Circle
-            key={`point-${i}`}
+            key={`point-${si}-${pi}`}
             className='point'
             cx={xScale(d.x)}
             cy={yScale(d.y)}
             r={(tooltipData === d) ? 5 : 2}
-            fill={getSeriesColor(0) /* get series index */}
+            fill={getSeriesColor(si) /* get series index */}
           />
-        })}
+        }))}
       </Group>
     </svg>
     {tooltipOpen && !!tooltipData && <>
