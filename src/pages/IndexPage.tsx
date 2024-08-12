@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Card, Chip, Grid, IconButton, Input, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
+import { Box, Card, Chip, Divider, FormControl, FormLabel, Grid, IconButton, Input, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
 import { useGlobalContext } from '../contexts/GlobalContext'
 import { ParentSize } from '@visx/responsive'
 import { ThemeToggle } from '../components/ThemeToggle'
@@ -95,22 +95,15 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
         </IconButton>
       </span>
     </Typography>
-    <Table>
-      <thead>
-        <tr>
-          <th style={{width: '30%'}}>Name</th>
-          <th style={{width: '60%'}}>Filters</th>
-          <th style={{width: '10%'}}></th>
-        </tr>
-      </thead>
-      <tbody>
-        {series.map((s, i) => <tr key={s.id}>
-          <td>
-            <Stack direction='row'>
-              <Input defaultValue={s.label} startDecorator={<Chip size='sm' sx={{bgcolor: getSeriesColor(i)}} />} onChange={v => handleSetSeriesLabel(s.id, v.target.value)}></Input>
-            </Stack>
-          </td>
-          <td>
+    <Grid container spacing={1}>
+      {series.map((s, i) => <Grid xs={12} md={6}>
+        <Card variant='soft'>
+          <FormControl>
+            <FormLabel>Series Name</FormLabel>
+            <Input defaultValue={s.label} startDecorator={<Chip size='sm' sx={{bgcolor: getSeriesColor(i)}} />} onChange={v => handleSetSeriesLabel(s.id, v.target.value)}></Input>
+          </FormControl>
+          <FormControl>
+            <FormLabel>Filters</FormLabel>
             <Stack direction='column' spacing={1}>
               {s.filters.map(f => <Table>
                 <tbody>
@@ -136,17 +129,14 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
                 <Add />
               </IconButton>
             </Stack>
-          </td>
-          <td>
-            <Stack direction='row-reverse'>
-              <IconButton variant='soft' size='sm' color='danger' onClick={_ => handleRemoveSeries(s.id)}>
-                <Delete />
-              </IconButton>
-            </Stack>
-          </td>
-        </tr>)}
-      </tbody>
-    </Table>
+          </FormControl>
+          <Divider />
+          <IconButton variant='soft' size='sm' color='danger' onClick={_ => handleRemoveSeries(s.id)}>
+            <Delete />
+          </IconButton>
+        </Card>
+      </Grid>)}
+    </Grid>
   </Card>
 }
 
