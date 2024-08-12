@@ -1,11 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Card, Chip, Divider, FormControl, FormLabel, Grid, IconButton, Input, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
+import { Box, Card, Chip, Divider, Dropdown, FormControl, FormLabel, Grid, IconButton, Input, Menu, MenuButton, MenuItem, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
 import { useGlobalContext } from '../contexts/GlobalContext'
 import { ParentSize } from '@visx/responsive'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { ScatterChart } from '../components/ScatterChart'
 import { ColumnSelector } from '../components/ColumnSelector'
-import { Add, Delete } from '@mui/icons-material'
+import { Add, ArrowDropDown, Delete, DeveloperBoard, SmartToy, ViewCozy } from '@mui/icons-material'
 import { useSeriesColor } from '../hooks/useSeriesColor'
 import { useHeaderContext } from '../contexts/HeaderContext'
 import { Datum, HeaderColumn } from '../models/DataTransferObject'
@@ -53,6 +53,20 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
     onChange(series)
   }, [series])
 
+  const handleSetMenVsWomen = () => {
+    const genderColumn = getColumn('GENDER')
+    setSeries([
+      {
+        ...SeriesDefinition('Men'),
+        filters: [Filter(genderColumn, Comparator.EQUAL, 1)]
+      },
+      {
+        ...SeriesDefinition('Women'),
+        filters: [Filter(genderColumn, Comparator.EQUAL, 2)]
+      }
+    ])
+  }
+
   const handleAddSeries = () => {
     setSeries(s => [...s, SeriesDefinition('New Series')])
   }
@@ -89,14 +103,24 @@ const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => voi
   return <Card>
     <Typography level='title-lg'>
       Series
-      <span style={{marginInlineStart: '0.25em', verticalAlign: 'sub'}}>
-        <IconButton size='sm' color='primary' onClick={handleAddSeries}>
-          <Add />
-        </IconButton>
+      <span style={{marginInlineStart: '0.5em', verticalAlign: 'sub'}}>
+        <Stack sx={{display: 'inline-block'}} direction='row' spacing={1}>
+          <IconButton size='sm' color='primary' onClick={handleAddSeries}>
+            <Add />
+          </IconButton>
+          <Dropdown>
+            <MenuButton slots={{ root: IconButton }} slotProps={{ root: { size: 'sm', color: 'primary' } }}>
+              <DeveloperBoard />
+            </MenuButton>
+            <Menu>
+              <MenuItem onClick={handleSetMenVsWomen}>Men vs. Women</MenuItem>
+            </Menu>
+          </Dropdown>
+        </Stack>
       </span>
     </Typography>
     <Grid container spacing={1}>
-      {series.map((s, i) => <Grid xs={12} md={6}>
+      {series.map((s, i) => <Grid xs={12} md={6} key={s.id}>
         <Card variant='soft'>
           <FormControl>
             <FormLabel>Series Name</FormLabel>
