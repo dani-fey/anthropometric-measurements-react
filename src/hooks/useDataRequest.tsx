@@ -12,7 +12,7 @@ export const useDataRequest = () => {
   }
 
   const getData = (columns: string[]): Promise<DataResponse> => {
-    return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=rollup&columns=${columns.join(',')}`, {
+    return fetch(`${import.meta.env.VITE_HOST_URL}/anthro.php?mode=data&columns=${columns.join(',')}`, {
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*'
