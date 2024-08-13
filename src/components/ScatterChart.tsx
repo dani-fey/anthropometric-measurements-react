@@ -7,7 +7,7 @@ import { scaleLinear } from '@visx/scale'
 import { useTooltip, TooltipWithBounds } from '@visx/tooltip'
 import { voronoi } from '@visx/voronoi'
 import { Group } from "@visx/group"
-import { Area, Circle, Line, LinePath } from "@visx/shape"
+import { Area, Circle } from "@visx/shape"
 import { useSeriesColor } from "../hooks/useSeriesColor"
 import { PointWithSeries, AxisStatistics, Point, Series, LinearRegression } from "../models/Chart"
 import { TooltipCard } from "./TooltipCard"
@@ -22,13 +22,7 @@ type ScatterChart_Props = {
   height: number
 }
 
-const margin = {
-  top: 40,
-  right: 40,
-  left: 80,
-  bottom: 60,
-}
-const expandFactor = 0.1
+const expandFactor = 0
 
 export const ScatterChart = (props: ScatterChart_Props) => {
   const { width, height, xAxis, yAxis, series } = props
@@ -49,6 +43,15 @@ export const ScatterChart = (props: ScatterChart_Props) => {
   const { showTooltip, hideTooltip, tooltipOpen, tooltipLeft, tooltipTop, tooltipData } = useTooltip<PointWithSeries>({})
 
   const svgRef = useRef<SVGSVGElement>(null)
+
+  const margin = useMemo(() => {
+    return {
+      top: 40,
+      right: width * (1 / 24),
+      left: width * (1 / 12),
+      bottom: 60,
+    }
+  }, [width])
 
   const xScale = useMemo(() => {
     const { xMin, dx, xMax } = statistics
@@ -97,7 +100,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
         <GridRows scale={yScale} left={margin.left} width={width - (margin.left + margin.right)} height={height - (margin.top + margin.bottom)} stroke={theme.palette.background.level2} />
         <GridColumns scale={xScale} top={margin.top} width={width - (margin.left + margin.right)} height={height - (margin.top + margin.bottom)} stroke={theme.palette.background.level2} />
         <AxisBottom label={`${xAxis.label} (${xAxis.unit})`} top={height - margin.bottom} scale={xScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
-        <AxisLeft label={`${yAxis.label} (${yAxis.unit})`} left={margin.left} scale={yScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
+        <AxisLeft labelOffset={Math.min(width * 0.05, 40)} label={`${yAxis.label} (${yAxis.unit})`} left={margin.left} scale={yScale} stroke={theme.palette.text.primary} tickStroke={theme.palette.text.primary} tickLabelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} labelProps={{fill: theme.palette.text.primary, strokeWidth: 0, paintOrder: 'stroke'}} />
         <RectClipPath id='regression-clip' x={margin.left} y={margin.top} width={width - (margin.left + margin.right)} height={height - (margin.top + margin.bottom)} />
         <Group clipPath='url(#regression-clip)'>
           {regressions.map((r, i) => {
@@ -123,7 +126,7 @@ export const ScatterChart = (props: ScatterChart_Props) => {
             cx={xScale(d.x)}
             cy={yScale(d.y)}
             r={(tooltipData === d) ? 5 : 2}
-            fill={getSeriesColor(si) /* get series index */}
+            fill={getSeriesColor(si)}
           />
         }))}
       </Group>

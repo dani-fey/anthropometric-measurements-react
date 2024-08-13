@@ -1,11 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Box, Card, Chip, Divider, Dropdown, FormControl, FormLabel, Grid, IconButton, Input, Menu, MenuButton, MenuItem, Option, Select, Stack, Table, Typography, useTheme } from '@mui/joy'
-import { useGlobalContext } from '../contexts/GlobalContext'
+import { Box, Card, Chip, Divider, Dropdown, FormControl, FormLabel, Grid, IconButton, Input, Menu, MenuButton, MenuItem, Option, Select, Stack, Table, Typography } from '@mui/joy'
 import { ParentSize } from '@visx/responsive'
 import { ThemeToggle } from '../components/ThemeToggle'
 import { ScatterChart } from '../components/ScatterChart'
 import { ColumnSelector } from '../components/ColumnSelector'
-import { Add, ArrowDropDown, Delete, DeveloperBoard, SmartToy, ViewCozy, Wc } from '@mui/icons-material'
+import { Add, Delete, DeveloperBoard, Wc } from '@mui/icons-material'
 import { useSeriesColor } from '../hooks/useSeriesColor'
 import { useHeaderContext } from '../contexts/HeaderContext'
 import { Datum, HeaderColumn } from '../models/DataTransferObject'
@@ -23,10 +22,10 @@ const ChartControls = ({ onSubmit }: {onSubmit: (xAxis: string, yAxis: string) =
   
   return <>
     <Grid container spacing={2}>
-      <Grid xs={6}>
+      <Grid xs={12} md={6}>
         <ColumnSelector label='X-Axis' onChange={v => setXAxis(v)} />
       </Grid>
-      <Grid xs={6}>
+      <Grid xs={12} md={6}>
         <ColumnSelector label='Y-Axis' onChange={v => setYAxis(v)} />
       </Grid>
     </Grid>
@@ -34,12 +33,15 @@ const ChartControls = ({ onSubmit }: {onSubmit: (xAxis: string, yAxis: string) =
 }
 
 const Title = () => {
-  return <Typography level='h1'>
-    Anthropometric Measurements — an Intuitive Visualization
-    <span style={{marginInlineStart: '0.25em'}}>
-      <ThemeToggle />
-    </span>
-  </Typography>
+  return <div>
+    <Typography level='h1'>
+      Anthropometric Measurements — an Intuitive Visualization
+      <span style={{marginInlineStart: '0.25em'}}>
+        <ThemeToggle />
+      </span>
+    </Typography>
+    <Typography level='body-xs'>Maintained by Hannah Bast, Dani Fey</Typography>
+  </div>
 }
 
 const SeriesCard = ({ onChange }: {onChange: (series: SeriesDefinition[]) => void}) => {
@@ -216,8 +218,8 @@ const ChartCard = ({ xAxis, yAxis, series }: {xAxis: HeaderColumn | undefined, y
   }, [seriesData])
 
   if (headersLoaded && axesDefined && dataLoaded && !!seriesData) return <>
-    <Card>
-      <div style={{width: '100%', aspectRatio: 2}}>
+    <Card style={{containerType: 'inline-size'}}>
+      <div style={{width: '100%', aspectRatio: 1, maxHeight: 540}}>
         <ParentSize debounceTime={0}>
           {parent => <ScatterChart series={seriesData} width={parent.width} height={parent.height} xAxis={xAxis} yAxis={yAxis} />}
         </ParentSize>
@@ -233,7 +235,7 @@ const ChartCard = ({ xAxis, yAxis, series }: {xAxis: HeaderColumn | undefined, y
 }
 
 const ChartView = () => {
-  const { headers, getColumn } = useHeaderContext()
+  const { getColumn } = useHeaderContext()
 
   const [xAxis, setXAxis] = useState<HeaderColumn | undefined>(undefined)
   const [yAxis, setYAxis] = useState<HeaderColumn | undefined>(undefined)

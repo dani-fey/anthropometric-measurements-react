@@ -1,7 +1,6 @@
 import { createBrowserRouter, RouterProvider } from 'react-router-dom'
 import { BasePage } from './pages/BasePage'
 import { IndexPage } from './pages/IndexPage'
-import { GlobalContextProvider } from './contexts/GlobalContext'
 import { CssBaseline, CssVarsProvider } from '@mui/joy'
 import { HeaderContextProvider } from './contexts/HeaderContext'
 
