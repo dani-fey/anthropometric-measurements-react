@@ -1,5 +1,5 @@
 import { IconButton, useColorScheme } from "@mui/joy"
-import { ColorTheme } from "../models/ColorTheme"
+import { ColorTheme } from "../models/Models"
 import { DarkMode, LightMode } from "@mui/icons-material"
 import { useCallback } from "react"
 

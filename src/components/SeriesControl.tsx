@@ -3,7 +3,7 @@ import { Card, Typography, Stack, IconButton, Dropdown, MenuButton, Menu, MenuIt
 import { useState, useEffect } from "react"
 import { useHeaderContext } from "../contexts/HeaderContext"
 import { useSeriesColor } from "../hooks/useSeriesColor"
-import { Comparator, Filter, SeriesDefinition } from "../models/Chart"
+import { Comparator, Filter, SeriesDefinition } from "../models/Models"
 
 export const SeriesControl = ({ onChange }: {onChange: (series: SeriesDefinition[]) => void}) => {
   const { getSeriesColor } = useSeriesColor()

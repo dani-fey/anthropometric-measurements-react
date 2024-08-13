@@ -9,9 +9,8 @@ import { voronoi } from '@visx/voronoi'
 import { Group } from "@visx/group"
 import { Area, Circle } from "@visx/shape"
 import { useSeriesColor } from "../hooks/useSeriesColor"
-import { PointWithSeries, AxisStatistics, Point, Series, LinearRegression } from "../models/Chart"
+import { PointWithSeries, AxisStatistics, Point, Series, LinearRegression, HeaderColumn } from "../models/Models"
 import { TooltipCard } from "./TooltipCard"
-import { HeaderColumn } from "../models/DataTransferObject"
 import { RectClipPath } from "@visx/clip-path"
 
 type ScatterChart_Props = {

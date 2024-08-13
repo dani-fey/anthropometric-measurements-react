@@ -1,4 +1,4 @@
-import { DataResponse, HeaderColumnMap } from "../models/DataTransferObject"
+import { DataResponse, HeaderColumnMap } from "../models/Models"
 
 export const useDataRequest = () => {
   const getHeaders = (): Promise<{time: number, data: HeaderColumnMap}> => {

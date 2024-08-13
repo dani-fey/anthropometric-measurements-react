@@ -1,5 +1,13 @@
 import { v4 } from "uuid"
-import { HeaderColumn } from "./DataTransferObject"
+
+// Theme Types
+
+export enum ColorTheme {
+  LIGHT = 'light',
+  DARK = 'dark',
+}
+
+// Chart Types
 
 export type Point = {x: number, y: number}
 
@@ -47,8 +55,8 @@ export type Filter = {
   value: number,
 }
 export const Filter = (column: HeaderColumn, comparator: Comparator, value: number): Filter => ({ id: v4(), column, comparator, value })
+
 export const compare = (comparator: Comparator, compareValue: number) => (dataValue: number) => {
-  console.log('compare', compareValue, comparator, dataValue)
   if (comparator === Comparator.EQUAL) return dataValue === compareValue
   else if (comparator === Comparator.NOT_EQUAL) return dataValue !== compareValue
   else if (comparator === Comparator.GREATER_THAN) return dataValue > compareValue
@@ -76,4 +84,25 @@ export const LinearRegression = (points: Point[]): LinearRegression => {
   const [a, b] = [(n * sumXY - sumX * sumY) / tX, (sumY * sumXSq - sumX * sumXY) / tX]
   const epsilon = Math.sqrt(tY - a * a * tX) / n
   return {a, b, epsilon}
+}
+
+// Data Transfer Types
+
+export type HeaderColumnMap = {[id: string]: HeaderColumn}
+
+export type HeaderColumn = {
+  id: string,
+  index: string,
+  include: boolean,
+  label: string,
+  unit: string,
+  scale: number,
+  description: string
+}
+
+export type Datum = {[id: string]: number}
+
+export type DataResponse = {
+  time: number,
+  data: Datum[],
 }

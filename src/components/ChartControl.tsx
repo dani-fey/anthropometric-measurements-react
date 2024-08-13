@@ -3,8 +3,7 @@ import { ParentSize } from "@visx/responsive"
 import { useState, useMemo, useEffect } from "react"
 import { useHeaderContext } from "../contexts/HeaderContext"
 import { useDataRequest } from "../hooks/useDataRequest"
-import { SeriesDefinition, compare } from "../models/Chart"
-import { HeaderColumn, Datum } from "../models/DataTransferObject"
+import { SeriesDefinition, compare, HeaderColumn, Datum } from "../models/Models"
 import { ScatterChart } from "./ScatterChart"
 
 export const ChartControl = ({ xAxis, yAxis, series }: {xAxis: HeaderColumn | undefined, yAxis: HeaderColumn | undefined, series: SeriesDefinition[]}) => {

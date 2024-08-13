@@ -1,5 +1,5 @@
 import { createContext, ReactNode, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { HeaderColumnMap } from "../models/DataTransferObject";
+import { HeaderColumnMap } from "../models/Models";
 import { useDataRequest } from "../hooks/useDataRequest";
 
 const initialValue = {}

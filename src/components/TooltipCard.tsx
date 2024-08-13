@@ -1,6 +1,5 @@
 import { Card, Typography } from "@mui/joy"
-import { PointWithSeries } from "../models/Chart"
-import { HeaderColumn } from "../models/DataTransferObject"
+import { PointWithSeries, HeaderColumn } from "../models/Models"
 
 type TooltipCard_Props = {
   point: PointWithSeries,
